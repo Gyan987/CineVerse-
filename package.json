@@ -1,0 +1,15 @@
+{
+  "name": "cineverse-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CineVerse screenplay translation backend",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test",
+    "check": "node --check server.mjs && node --test"
+  }
+}
