@@ -2990,8 +2990,9 @@ export const createApp = createServer;
 
 export async function startServer(options = {}) {
   const server = createServer(options);
-  const port = Number(options.port ?? (options.env || process.env).PORT ?? 3000);
-  const host = options.host || (options.env || process.env).HOST || '127.0.0.1';
+  const runtimeEnv = options.env || process.env;
+  const port = Number(options.port ?? runtimeEnv.PORT ?? 3000);
+  const host = options.host || runtimeEnv.HOST || (String(runtimeEnv.NODE_ENV || '').toLowerCase() === 'production' ? '0.0.0.0' : '127.0.0.1');
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(port, host, () => { server.off('error', reject); resolve(); });
