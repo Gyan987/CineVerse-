@@ -2134,12 +2134,26 @@ function validationSummary(issues) {
   }, { total: 0, error: 0, warning: 0 });
 }
 
+function firstForwardedValue(value) {
+  return String(value || '').split(',')[0].trim();
+}
+
+function publicRequestOrigin(req, env) {
+  const configured = String(env.CINEVERSE_PUBLIC_ORIGIN || '').trim();
+  if (configured) return configured;
+  // Render and other TLS-terminating proxies connect to Node over HTTP. Prefer
+  // their client-facing origin headers so same-origin mutations still work.
+  const protocol = firstForwardedValue(req.headers['x-forwarded-proto']) || (req.socket.encrypted ? 'https' : 'http');
+  const host = firstForwardedValue(req.headers['x-forwarded-host']) || String(req.headers.host || '').trim();
+  return host ? `${protocol}://${host}` : '';
+}
+
 function assertSameOrigin(req, env) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return;
   const origin = req.headers.origin;
   if (origin) {
     const configuredOrigins = String(env.CINEVERSE_CORS_ORIGIN || '').split(',').map(item => item.trim()).filter(Boolean);
-    const expected = env.CINEVERSE_PUBLIC_ORIGIN || `${req.socket.encrypted ? 'https' : 'http'}://${req.headers.host}`;
+    const expected = publicRequestOrigin(req, env);
     let matches = false;
     try { matches = new URL(origin).origin === new URL(expected).origin; } catch { /* reject malformed origins */ }
     if (!matches && configuredOrigins.includes('*')) matches = true;

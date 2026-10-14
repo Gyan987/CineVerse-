@@ -40,6 +40,32 @@ test('demo translation is explicit and provider-shaped', async () => {
   assert.equal(aiServiceStatus({ env: { CINEVERSE_AI_PROVIDER: 'demo' } }).configured, true);
 });
 
+test('same-origin mutation honors forwarded HTTPS origin behind an internal HTTP proxy', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'cineverse-proxy-origin-test-'));
+  const server = createServer({
+    dbPath: path.join(directory, 'cineverse.sqlite'),
+    storageDir: directory,
+    env: { CINEVERSE_AI_PROVIDER: 'demo' },
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        origin: 'https://cineverse-omnirush.onrender.com',
+        'x-forwarded-proto': 'https',
+        'x-forwarded-host': 'cineverse-omnirush.onrender.com',
+      },
+      body: JSON.stringify({ email: 'proxy-origin@example.test', password: 'password123' }),
+    });
+    assert.equal(response.status, 201);
+  } finally {
+    await server.shutdown();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('HTTP API enforces project ownership and supports a demo translation job', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'cineverse-test-'));
   const server = createServer({
