@@ -1,4 +1,4 @@
-# CineVerse
+# CineVerse 
 
 CineVerse is a server-backed screenplay translation and localization workspace. It includes a browser editor, private SQLite persistence, screenplay parsing for Fountain/TXT/FDX/DOCX/PDF, project-scoped context and glossary memory, review/validation workflows, provider-agnostic translation, and DOCX/FDX/Fountain/TXT/JSON/CSV/review exports.
 
